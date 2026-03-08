@@ -11,6 +11,8 @@ import DonatorDrawer from './components/DonatorDrawer';
 import { MOCK_CURRENT_DONATORS, MOCK_INCOMING_DONATORS, Donator, IncomingDonator } from './data';
 import { motion } from 'motion/react';
 
+type NotificationKind = 'expiring_soon' | 'renew_now';
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<'current' | 'incoming' | 'deactivated'>('current');
   const [currentDonators, setCurrentDonators] = useState<Donator[]>(MOCK_CURRENT_DONATORS);
@@ -136,6 +138,15 @@ export default function App() {
     }
   };
 
+  const handleSendNotification = (id: string, kind: NotificationKind) => {
+    const actionLabel = kind === 'expiring_soon' ? 'expiry reminder' : 'renewal reminder';
+    void sendAction({ type: 'notify', id, kind }).then(() => {
+      setSyncNotice(`Sent ${actionLabel} for donator ${id}`);
+    }).catch(() => {
+      setSyncNotice(`Failed to send ${actionLabel} for donator ${id}`);
+    });
+  };
+
   return (
     <div className="min-h-screen pt-20 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <Navbar />
@@ -227,6 +238,7 @@ export default function App() {
                 onSelectDonator={setSelectedDonator}
                 onDeactivate={handleDeactivate}
                 onReactivate={handleReactivate}
+                onSendNotification={handleSendNotification}
               />
             </motion.div>
           )}
@@ -260,6 +272,7 @@ export default function App() {
                 onSelectDonator={setSelectedDonator}
                 onDeactivate={handleDeactivate}
                 onReactivate={handleReactivate}
+                onSendNotification={handleSendNotification}
               />
             </motion.div>
           )}

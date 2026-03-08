@@ -16,7 +16,7 @@ type Donator = {
   name: string;
   tier: "Individual" | "Household";
   discount: boolean;
-  membershipLength: number;
+  membershipLengthMonths: number;
   membershipDateEnd: string;
   monthlyAmount: number;
   status: "Active" | "Inactive";
@@ -30,7 +30,7 @@ type IncomingDonator = {
   name: string;
   tier: "Individual" | "Household";
   discount: boolean;
-  membershipLength: number;
+  membershipLengthMonths: number;
   membershipDateEnd: string;
   submittedDate: string;
   status: "Pending Giro" | "Pending e-Giro";
@@ -40,6 +40,20 @@ type IncomingDonator = {
 type DonatorState = {
   currentDonators: Donator[];
   incomingDonators: IncomingDonator[];
+  notificationLog: NotificationLog[];
+};
+
+type NotificationKind = "expiring_soon" | "renew_now";
+
+type NotificationLog = {
+  id: string;
+  donatorId: string;
+  donatorName: string;
+  kind: NotificationKind;
+  title: string;
+  body: string;
+  createdAt: string;
+  status: "queued";
 };
 
 type ActionPayload =
@@ -50,6 +64,7 @@ type ActionPayload =
         name: string;
         tier: "Individual" | "Household";
         discount?: boolean;
+        membershipLengthMonths?: number;
         membershipLength?: number;
         membershipDateEnd?: string;
         status?: "Pending Giro" | "Pending e-Giro";
@@ -64,6 +79,7 @@ type ActionPayload =
         name: string;
         tier: "Individual" | "Household";
         discount?: boolean;
+        membershipLengthMonths?: number;
         membershipLength?: number;
         membershipDateEnd?: string;
         monthlyAmount?: number;
@@ -77,6 +93,7 @@ type ActionPayload =
         name: string;
         tier: "Individual" | "Household";
         discount?: boolean;
+        membershipLengthMonths?: number;
         membershipLength?: number;
         membershipDateEnd?: string;
         monthlyAmount?: number;
@@ -86,7 +103,8 @@ type ActionPayload =
   | { type: "approve"; id: string }
   | { type: "reject"; id: string }
   | { type: "deactivate"; id: string }
-  | { type: "reactivate"; id: string };
+  | { type: "reactivate"; id: string }
+  | { type: "notify"; id: string; kind: NotificationKind };
 
 declare global {
   // eslint-disable-next-line no-var
@@ -101,7 +119,7 @@ const SEED_CURRENT_DONATORS: Donator[] = [
     name: "Ahmad bin Sulaiman",
     tier: "Individual",
     discount: false,
-    membershipLength: 12,
+    membershipLengthMonths: 12,
     membershipDateEnd: "2027-03-31",
     monthlyAmount: 50,
     status: "Active",
@@ -116,7 +134,7 @@ const SEED_INCOMING_DONATORS: IncomingDonator[] = [
     name: "Hassan Basri",
     tier: "Individual",
     discount: false,
-    membershipLength: 12,
+    membershipLengthMonths: 12,
     membershipDateEnd: "2027-03-31",
     submittedDate: "2026-03-08",
     status: "Pending Giro",
@@ -128,6 +146,7 @@ const getState = (): DonatorState => {
     globalThis.__DONATOR_MVP_STATE__ = {
       currentDonators: clone(SEED_CURRENT_DONATORS),
       incomingDonators: clone(SEED_INCOMING_DONATORS),
+      notificationLog: [],
     };
   }
   return globalThis.__DONATOR_MVP_STATE__;
@@ -193,10 +212,14 @@ export default function handler(req: any, res: any) {
         name: payload.user.name,
         tier: payload.user.tier,
         discount: Boolean(payload.user.discount),
-        membershipLength:
-          payload.user.membershipLength && Number.isInteger(payload.user.membershipLength)
-            ? payload.user.membershipLength
-            : 12,
+        membershipLengthMonths:
+          payload.user.membershipLengthMonths &&
+          Number.isInteger(payload.user.membershipLengthMonths)
+            ? payload.user.membershipLengthMonths
+            : payload.user.membershipLength &&
+                Number.isInteger(payload.user.membershipLength)
+              ? payload.user.membershipLength
+              : 12,
         membershipDateEnd:
           payload.user.membershipDateEnd ||
           new Date(new Date().setMonth(new Date().getMonth() + 12))
@@ -224,10 +247,14 @@ export default function handler(req: any, res: any) {
         name: payload.user.name,
         tier: payload.user.tier,
         discount: Boolean(payload.user.discount),
-        membershipLength:
-          payload.user.membershipLength && Number.isInteger(payload.user.membershipLength)
-            ? payload.user.membershipLength
-            : 12,
+        membershipLengthMonths:
+          payload.user.membershipLengthMonths &&
+          Number.isInteger(payload.user.membershipLengthMonths)
+            ? payload.user.membershipLengthMonths
+            : payload.user.membershipLength &&
+                Number.isInteger(payload.user.membershipLength)
+              ? payload.user.membershipLength
+              : 12,
         membershipDateEnd:
           payload.user.membershipDateEnd ||
           new Date(new Date().setMonth(new Date().getMonth() + 12))
@@ -261,7 +288,7 @@ export default function handler(req: any, res: any) {
         name: incoming.name,
         tier: incoming.tier,
         discount: incoming.discount,
-        membershipLength: incoming.membershipLength,
+        membershipLengthMonths: incoming.membershipLengthMonths,
         membershipDateEnd: incoming.membershipDateEnd,
         monthlyAmount: incoming.tier === "Individual" ? 50 : 100,
         status: "Active",
@@ -288,6 +315,39 @@ export default function handler(req: any, res: any) {
         d.id === payload.id ? { ...d, status: newStatus } : d,
       );
       return send(res, 200, { ok: true, ...state });
+    }
+
+    if (payload.type === "notify") {
+      const donator = state.currentDonators.find((d) => d.id === payload.id);
+      if (!donator) {
+        return send(res, 404, { ok: false, error: "Donator not found" });
+      }
+
+      const notificationText =
+        payload.kind === "expiring_soon"
+          ? {
+              title: "Plan expiring soon",
+              body: `${donator.name}, your current plan ends on ${donator.membershipDateEnd}.`,
+            }
+          : {
+              title: "Please renew your plan",
+              body: `${donator.name}, please renew your current plan to continue coverage.`,
+            };
+
+      const notification: NotificationLog = {
+        id: randomUUID(),
+        donatorId: donator.id,
+        donatorName: donator.name,
+        kind: payload.kind,
+        title: notificationText.title,
+        body: notificationText.body,
+        createdAt: new Date().toISOString(),
+        status: "queued",
+      };
+
+      state.notificationLog.unshift(notification);
+
+      return send(res, 200, { ok: true, notification, ...state });
     }
 
     return badRequest(res, "Unsupported action type");

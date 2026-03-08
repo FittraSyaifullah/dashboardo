@@ -8,9 +8,10 @@ interface DonatorTableProps {
   onSelectDonator: (donator: Donator) => void;
   onDeactivate: (id: string) => void;
   onReactivate: (id: string) => void;
+  onSendNotification: (id: string, kind: 'expiring_soon' | 'renew_now') => void;
 }
 
-export default function DonatorTable({ donators, onSelectDonator, onDeactivate, onReactivate }: DonatorTableProps) {
+export default function DonatorTable({ donators, onSelectDonator, onDeactivate, onReactivate, onSendNotification }: DonatorTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -148,7 +149,20 @@ export default function DonatorTable({ donators, onSelectDonator, onDeactivate, 
                         {activeMenuId === donator.id && (
                           <>
                             <div className="fixed inset-0 z-10" onClick={() => setActiveMenuId(null)}></div>
-                            <div className="absolute right-8 top-8 z-20 w-32 bg-[#161b22] border border-gray-700 rounded-lg shadow-xl py-1 overflow-hidden">
+                            <div className="absolute right-8 top-8 z-20 w-56 bg-[#161b22] border border-gray-700 rounded-lg shadow-xl py-1 overflow-hidden">
+                              <button
+                                onClick={() => { onSendNotification(donator.id, 'expiring_soon'); setActiveMenuId(null); }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
+                              >
+                                Send expiry reminder
+                              </button>
+                              <button
+                                onClick={() => { onSendNotification(donator.id, 'renew_now'); setActiveMenuId(null); }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
+                              >
+                                Send renew reminder
+                              </button>
+                              <div className="my-1 h-px bg-gray-800"></div>
                               {donator.status === 'Active' ? (
                                 <button 
                                   onClick={() => { onDeactivate(donator.id); setActiveMenuId(null); }}
