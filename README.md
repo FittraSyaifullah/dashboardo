@@ -48,6 +48,25 @@ Send this payload to `POST /api/donators`:
 
 You can also pass `id`, `submittedDate`, and `householdMembers`.
 
+### Directly add approved/current user
+
+If the user should skip "incoming" and go straight to active:
+
+```json
+{
+  "type": "approved",
+  "user": {
+    "id": "external-user-2001",
+    "name": "Already Approved",
+    "tier": "Individual",
+    "discount": false,
+    "monthlyAmount": 50
+  }
+}
+```
+
+`"type": "ingestApproved"` is also supported as an alias.
+
 ### Dashboard actions
 
 `POST /api/donators` with:

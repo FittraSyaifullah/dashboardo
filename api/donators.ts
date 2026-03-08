@@ -51,6 +51,28 @@ type ActionPayload =
         householdMembers?: IncomingDonator["householdMembers"];
       };
     }
+  | {
+      type: "ingestApproved";
+      user: {
+        id?: string;
+        name: string;
+        tier: "Individual" | "Household";
+        discount?: boolean;
+        monthlyAmount?: number;
+        householdMembers?: Donator["householdMembers"];
+      };
+    }
+  | {
+      type: "approved";
+      user: {
+        id?: string;
+        name: string;
+        tier: "Individual" | "Household";
+        discount?: boolean;
+        monthlyAmount?: number;
+        householdMembers?: Donator["householdMembers"];
+      };
+    }
   | { type: "approve"; id: string }
   | { type: "reject"; id: string }
   | { type: "deactivate"; id: string }
@@ -165,6 +187,32 @@ export default function handler(req: any, res: any) {
 
       state.incomingDonators.unshift(incoming);
       return send(res, 201, { ok: true, added: incoming, ...state });
+    }
+
+    if (payload.type === "ingestApproved" || payload.type === "approved") {
+      if (!payload.user?.name || !payload.user?.tier) {
+        return badRequest(res, "name and tier are required");
+      }
+
+      const id = payload.user.id || randomUUID();
+      const defaultAmount = payload.user.tier === "Individual" ? 50 : 100;
+      const approvedDonator: Donator = {
+        id,
+        name: payload.user.name,
+        tier: payload.user.tier,
+        discount: Boolean(payload.user.discount),
+        monthlyAmount: payload.user.monthlyAmount ?? defaultAmount,
+        status: "Active",
+        bounces: 0,
+        history: [],
+        householdMembers: payload.user.householdMembers,
+      };
+
+      state.currentDonators = state.currentDonators.filter((d) => d.id !== id);
+      state.incomingDonators = state.incomingDonators.filter((d) => d.id !== id);
+      state.currentDonators.unshift(approvedDonator);
+
+      return send(res, 201, { ok: true, added: approvedDonator, ...state });
     }
 
     if (payload.type === "approve") {
