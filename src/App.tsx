@@ -30,7 +30,9 @@ export default function App() {
   };
 
   const fetchServerState = async () => {
-    const response = await fetch('/api/donators');
+    const response = await fetch(`/api/donators?t=${Date.now()}`, {
+      cache: 'no-store',
+    });
     if (!response.ok) {
       throw new Error('Failed to load API state');
     }
@@ -43,6 +45,7 @@ export default function App() {
   const sendAction = async (action: object) => {
     const response = await fetch('/api/donators', {
       method: 'POST',
+      cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(action),
     });
