@@ -16,7 +16,7 @@ export default function App() {
   const [currentDonators, setCurrentDonators] = useState<Donator[]>(MOCK_CURRENT_DONATORS);
   const [incomingDonators, setIncomingDonators] = useState<IncomingDonator[]>(MOCK_INCOMING_DONATORS);
   const [selectedDonator, setSelectedDonator] = useState<Donator | null>(null);
-  const [syncNotice, setSyncNotice] = useState<string>('Using local mock mode');
+  const [syncNotice, setSyncNotice] = useState<string>(' ');
 
   const applyServerState = (payload: { currentDonators: Donator[]; incomingDonators: IncomingDonator[] }) => {
     setCurrentDonators(payload.currentDonators);
@@ -64,7 +64,7 @@ export default function App() {
         }
       } catch {
         if (isMounted) {
-          setSyncNotice('Using local mock mode');
+          setSyncNotice(' ');
         }
       }
     };
