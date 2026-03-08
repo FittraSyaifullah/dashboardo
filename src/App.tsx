@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from './components/Navbar';
 import DonatorTable from './components/DonatorTable';
 import IncomingTable from './components/IncomingTable';
@@ -16,47 +16,121 @@ export default function App() {
   const [currentDonators, setCurrentDonators] = useState<Donator[]>(MOCK_CURRENT_DONATORS);
   const [incomingDonators, setIncomingDonators] = useState<IncomingDonator[]>(MOCK_INCOMING_DONATORS);
   const [selectedDonator, setSelectedDonator] = useState<Donator | null>(null);
+  const [syncNotice, setSyncNotice] = useState<string>('Using local mock mode');
+
+  const applyServerState = (payload: { currentDonators: Donator[]; incomingDonators: IncomingDonator[] }) => {
+    setCurrentDonators(payload.currentDonators);
+    setIncomingDonators(payload.incomingDonators);
+    setSelectedDonator((prev) => {
+      if (!prev) return prev;
+      return payload.currentDonators.find((d) => d.id === prev.id) || null;
+    });
+  };
+
+  const fetchServerState = async () => {
+    const response = await fetch('/api/donators');
+    if (!response.ok) {
+      throw new Error('Failed to load API state');
+    }
+    const payload = await response.json();
+    if (payload?.ok) {
+      applyServerState(payload);
+    }
+  };
+
+  const sendAction = async (action: object) => {
+    const response = await fetch('/api/donators', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(action),
+    });
+    if (!response.ok) {
+      throw new Error('Action failed');
+    }
+    const payload = await response.json();
+    if (payload?.ok) {
+      applyServerState(payload);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const bootstrap = async () => {
+      try {
+        await fetchServerState();
+        if (isMounted) {
+          setSyncNotice('Synced with /api/donators');
+        }
+      } catch {
+        if (isMounted) {
+          setSyncNotice('Using local mock mode');
+        }
+      }
+    };
+
+    bootstrap();
+    const intervalId = window.setInterval(() => {
+      void fetchServerState().catch(() => {
+        // Ignore polling errors in MVP mode.
+      });
+    }, 8000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   const activeDonators = currentDonators.filter(d => d.status === 'Active');
   const inactiveDonators = currentDonators.filter(d => d.status === 'Inactive');
 
   const handleDeactivate = (id: string) => {
     if (window.confirm('Are you sure you want to deactivate this donator?')) {
-      setCurrentDonators(prev => prev.map(d => 
-        d.id === id ? { ...d, status: 'Inactive' } : d
-      ));
+      void sendAction({ type: 'deactivate', id }).catch(() => {
+        setCurrentDonators(prev => prev.map(d =>
+          d.id === id ? { ...d, status: 'Inactive' } : d
+        ));
+      });
     }
   };
 
   const handleReactivate = (id: string) => {
-    setCurrentDonators(prev => prev.map(d => 
-      d.id === id ? { ...d, status: 'Active' } : d
-    ));
+    void sendAction({ type: 'reactivate', id }).catch(() => {
+      setCurrentDonators(prev => prev.map(d =>
+        d.id === id ? { ...d, status: 'Active' } : d
+      ));
+    });
   };
 
   const handleApproveIncoming = (id: string) => {
-    const incoming = incomingDonators.find(d => d.id === id);
-    if (incoming) {
-      const newDonator: Donator = {
-        id: incoming.id,
-        name: incoming.name,
-        tier: incoming.tier,
-        discount: incoming.discount,
-        monthlyAmount: incoming.tier === 'Individual' ? 50 : 100, // Default amounts
-        status: 'Active',
-        bounces: 0,
-        history: []
-      };
-      setCurrentDonators(prev => [newDonator, ...prev]);
-      setIncomingDonators(prev => prev.filter(d => d.id !== id));
-      // Switch to current tab to show the new user
+    void sendAction({ type: 'approve', id }).then(() => {
       setActiveTab('current');
-    }
+    }).catch(() => {
+      const incoming = incomingDonators.find(d => d.id === id);
+      if (incoming) {
+        const newDonator: Donator = {
+          id: incoming.id,
+          name: incoming.name,
+          tier: incoming.tier,
+          discount: incoming.discount,
+          monthlyAmount: incoming.tier === 'Individual' ? 50 : 100,
+          status: 'Active',
+          bounces: 0,
+          history: []
+        };
+        setCurrentDonators(prev => [newDonator, ...prev]);
+        setIncomingDonators(prev => prev.filter(d => d.id !== id));
+        setActiveTab('current');
+      }
+    });
   };
 
   const handleRejectIncoming = (id: string) => {
     if (window.confirm('Are you sure you want to remove this application?')) {
-      setIncomingDonators(prev => prev.filter(d => d.id !== id));
+      void sendAction({ type: 'reject', id }).catch(() => {
+        setIncomingDonators(prev => prev.filter(d => d.id !== id));
+      });
     }
   };
 
@@ -70,6 +144,7 @@ export default function App() {
           <div>
             <h2 className="text-3xl font-bold text-white tracking-tight">Donator Management</h2>
             <p className="text-gray-400 mt-1">Manage Skim Pintar subscriptions and applications.</p>
+            <p className="text-xs text-gray-500 mt-2">{syncNotice}</p>
           </div>
           
           <div className="bg-[#161b22] p-1 rounded-lg border border-gray-800 flex items-center overflow-x-auto max-w-full">

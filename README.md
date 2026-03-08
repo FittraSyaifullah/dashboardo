@@ -18,3 +18,46 @@ View your app in AI Studio: https://ai.studio/apps/73c31bee-1fef-4b28-9705-42f8f
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Hackathon MVP Ingestion API (Vercel-friendly)
+
+This project now includes a lightweight serverless endpoint at:
+
+- `GET /api/donators` -> returns `{ ok, currentDonators, incomingDonators }`
+- `POST /api/donators` -> accepts dashboard actions and external ingestion
+
+Optional env var:
+
+- `MVP_API_KEY` (if set, all `POST` requests must include `x-api-key`)
+
+### Ingest from your other app
+
+Send this payload to `POST /api/donators`:
+
+```json
+{
+  "type": "ingest",
+  "user": {
+    "name": "Jane Doe",
+    "tier": "Individual",
+    "discount": false,
+    "status": "Pending Giro"
+  }
+}
+```
+
+You can also pass `id`, `submittedDate`, and `householdMembers`.
+
+### Dashboard actions
+
+`POST /api/donators` with:
+
+- `{ "type": "approve", "id": "..." }`
+- `{ "type": "reject", "id": "..." }`
+- `{ "type": "deactivate", "id": "..." }`
+- `{ "type": "reactivate", "id": "..." }`
+
+Notes for MVP scope:
+
+- This uses in-memory storage in the serverless function.
+- Data may reset on cold start/redeploy (acceptable for a hackathon demo).
