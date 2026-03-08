@@ -3,6 +3,8 @@
 An admin dashboard for **Masjid Ar-Raudhah**'s **Skim Pintar** donation membership programme. Manages donator records, processes new applications, tracks payment history, and supports multi-session state via Vercel KV (Upstash) with automatic in-memory fallback.
 
 ---
+<img width="1889" height="736" alt="image" src="https://github.com/user-attachments/assets/59b8438c-0db3-4c12-8f6c-07802d733498" />
+
 
 ## Features
 
