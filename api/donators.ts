@@ -202,6 +202,12 @@ const getState = async (): Promise<DonatorState> => {
     if (stored && typeof stored === "object") {
       return stored as DonatorState;
     }
+    if (typeof stored === "string") {
+      const parsed = JSON.parse(stored) as DonatorState;
+      if (parsed && typeof parsed === "object") {
+        return parsed;
+      }
+    }
   } catch {
     // Fallback to seed if KV call fails once.
   }
