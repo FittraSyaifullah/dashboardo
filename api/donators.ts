@@ -154,12 +154,17 @@ const resolveMembershipEnd = (user: UserPayload, months: number): string => {
   return now.toISOString().slice(0, 10);
 };
 
-const hasKvConfig = () =>
-  Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+const getKvUrl = () =>
+  process.env.KV_REST_API_URL || process.env.dashboardo_KV_REST_API_URL;
+
+const getKvToken = () =>
+  process.env.KV_REST_API_TOKEN || process.env.dashboardo_KV_REST_API_TOKEN;
+
+const hasKvConfig = () => Boolean(getKvUrl() && getKvToken());
 
 const kvRequest = async (path: string) => {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+  const url = getKvUrl();
+  const token = getKvToken();
   if (!url || !token) {
     throw new Error("KV env vars are missing");
   }
