@@ -29,6 +29,7 @@ This project now includes a lightweight serverless endpoint at:
 Optional env var:
 
 - `MVP_API_KEY` (if set, all `POST` requests must include `x-api-key`)
+- `KV_REST_API_URL` and `KV_REST_API_TOKEN` (recommended for stable shared state on Vercel)
 
 ### Ingest from your other app
 
@@ -46,7 +47,7 @@ Send this payload to `POST /api/donators`:
 }
 ```
 
-You can also pass `id`, `submittedDate`, and `householdMembers`.
+You can also pass `id`, `submittedDate`, `membershipLengthMonths`, `membershipDateEnd`, and `householdMembers`.
 
 ### Directly add approved/current user
 
@@ -78,5 +79,5 @@ If the user should skip "incoming" and go straight to active:
 
 Notes for MVP scope:
 
-- This uses in-memory storage in the serverless function.
-- Data may reset on cold start/redeploy (acceptable for a hackathon demo).
+- With Vercel KV configured, state is shared/persistent across serverless instances.
+- Without KV vars, route falls back to in-memory state (can appear inconsistent on Vercel).
