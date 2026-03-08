@@ -1,10 +1,37 @@
-import {
-  MOCK_CURRENT_DONATORS,
-  MOCK_INCOMING_DONATORS,
-  Donator,
-  IncomingDonator,
-} from "../src/data";
 import { randomUUID } from "node:crypto";
+
+type HouseholdMember = {
+  name: string;
+  relationship: "Immediate Family" | "Parent/In-law";
+};
+
+type PaymentRecord = {
+  date: string;
+  amount: number;
+  status: "Paid" | "Bounced" | "No Record";
+};
+
+type Donator = {
+  id: string;
+  name: string;
+  tier: "Individual" | "Household";
+  discount: boolean;
+  monthlyAmount: number;
+  status: "Active" | "Inactive";
+  bounces: 0 | 1 | 2;
+  history: PaymentRecord[];
+  householdMembers?: HouseholdMember[];
+};
+
+type IncomingDonator = {
+  id: string;
+  name: string;
+  tier: "Individual" | "Household";
+  discount: boolean;
+  submittedDate: string;
+  status: "Pending Giro" | "Pending e-Giro";
+  householdMembers?: HouseholdMember[];
+};
 
 type DonatorState = {
   currentDonators: Donator[];
@@ -36,11 +63,35 @@ declare global {
 
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
+const SEED_CURRENT_DONATORS: Donator[] = [
+  {
+    id: "1",
+    name: "Ahmad bin Sulaiman",
+    tier: "Individual",
+    discount: false,
+    monthlyAmount: 50,
+    status: "Active",
+    bounces: 0,
+    history: [],
+  },
+];
+
+const SEED_INCOMING_DONATORS: IncomingDonator[] = [
+  {
+    id: "101",
+    name: "Hassan Basri",
+    tier: "Individual",
+    discount: false,
+    submittedDate: "2026-03-08",
+    status: "Pending Giro",
+  },
+];
+
 const getState = (): DonatorState => {
   if (!globalThis.__DONATOR_MVP_STATE__) {
     globalThis.__DONATOR_MVP_STATE__ = {
-      currentDonators: clone(MOCK_CURRENT_DONATORS),
-      incomingDonators: clone(MOCK_INCOMING_DONATORS),
+      currentDonators: clone(SEED_CURRENT_DONATORS),
+      incomingDonators: clone(SEED_INCOMING_DONATORS),
     };
   }
   return globalThis.__DONATOR_MVP_STATE__;
