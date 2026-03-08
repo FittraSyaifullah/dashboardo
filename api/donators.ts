@@ -16,6 +16,8 @@ type Donator = {
   name: string;
   tier: "Individual" | "Household";
   discount: boolean;
+  membershipLength: number;
+  membershipDateEnd: string;
   monthlyAmount: number;
   status: "Active" | "Inactive";
   bounces: 0 | 1 | 2;
@@ -28,6 +30,8 @@ type IncomingDonator = {
   name: string;
   tier: "Individual" | "Household";
   discount: boolean;
+  membershipLength: number;
+  membershipDateEnd: string;
   submittedDate: string;
   status: "Pending Giro" | "Pending e-Giro";
   householdMembers?: HouseholdMember[];
@@ -46,6 +50,8 @@ type ActionPayload =
         name: string;
         tier: "Individual" | "Household";
         discount?: boolean;
+        membershipLength?: number;
+        membershipDateEnd?: string;
         status?: "Pending Giro" | "Pending e-Giro";
         submittedDate?: string;
         householdMembers?: IncomingDonator["householdMembers"];
@@ -58,6 +64,8 @@ type ActionPayload =
         name: string;
         tier: "Individual" | "Household";
         discount?: boolean;
+        membershipLength?: number;
+        membershipDateEnd?: string;
         monthlyAmount?: number;
         householdMembers?: Donator["householdMembers"];
       };
@@ -69,6 +77,8 @@ type ActionPayload =
         name: string;
         tier: "Individual" | "Household";
         discount?: boolean;
+        membershipLength?: number;
+        membershipDateEnd?: string;
         monthlyAmount?: number;
         householdMembers?: Donator["householdMembers"];
       };
@@ -91,6 +101,8 @@ const SEED_CURRENT_DONATORS: Donator[] = [
     name: "Ahmad bin Sulaiman",
     tier: "Individual",
     discount: false,
+    membershipLength: 12,
+    membershipDateEnd: "2027-03-31",
     monthlyAmount: 50,
     status: "Active",
     bounces: 0,
@@ -104,6 +116,8 @@ const SEED_INCOMING_DONATORS: IncomingDonator[] = [
     name: "Hassan Basri",
     tier: "Individual",
     discount: false,
+    membershipLength: 12,
+    membershipDateEnd: "2027-03-31",
     submittedDate: "2026-03-08",
     status: "Pending Giro",
   },
@@ -179,6 +193,15 @@ export default function handler(req: any, res: any) {
         name: payload.user.name,
         tier: payload.user.tier,
         discount: Boolean(payload.user.discount),
+        membershipLength:
+          payload.user.membershipLength && Number.isInteger(payload.user.membershipLength)
+            ? payload.user.membershipLength
+            : 12,
+        membershipDateEnd:
+          payload.user.membershipDateEnd ||
+          new Date(new Date().setMonth(new Date().getMonth() + 12))
+            .toISOString()
+            .slice(0, 10),
         submittedDate:
           payload.user.submittedDate || new Date().toISOString().slice(0, 10),
         status: payload.user.status || "Pending Giro",
@@ -201,6 +224,15 @@ export default function handler(req: any, res: any) {
         name: payload.user.name,
         tier: payload.user.tier,
         discount: Boolean(payload.user.discount),
+        membershipLength:
+          payload.user.membershipLength && Number.isInteger(payload.user.membershipLength)
+            ? payload.user.membershipLength
+            : 12,
+        membershipDateEnd:
+          payload.user.membershipDateEnd ||
+          new Date(new Date().setMonth(new Date().getMonth() + 12))
+            .toISOString()
+            .slice(0, 10),
         monthlyAmount: payload.user.monthlyAmount ?? defaultAmount,
         status: "Active",
         bounces: 0,
@@ -229,6 +261,8 @@ export default function handler(req: any, res: any) {
         name: incoming.name,
         tier: incoming.tier,
         discount: incoming.discount,
+        membershipLength: incoming.membershipLength,
+        membershipDateEnd: incoming.membershipDateEnd,
         monthlyAmount: incoming.tier === "Individual" ? 50 : 100,
         status: "Active",
         bounces: 0,

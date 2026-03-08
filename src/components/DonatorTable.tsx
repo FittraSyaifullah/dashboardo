@@ -69,6 +69,8 @@ export default function DonatorTable({ donators, onSelectDonator, onDeactivate, 
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Tier</th>
                 <th className="px-6 py-4">Discount</th>
+                <th className="px-6 py-4">Membership Length (Months)</th>
+                <th className="px-6 py-4">Membership Date End</th>
                 <th className="px-6 py-4">Monthly Amount</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Bounce Count</th>
@@ -115,6 +117,12 @@ export default function DonatorTable({ donators, onSelectDonator, onDeactivate, 
                         ) : (
                           <span className="text-gray-600 text-xs">—</span>
                         )}
+                      </td>
+                      <td className="px-6 py-4 font-mono text-gray-300">
+                        {donator.membershipLength}
+                      </td>
+                      <td className="px-6 py-4 font-mono text-gray-300 text-sm">
+                        {donator.membershipDateEnd}
                       </td>
                       <td className="px-6 py-4 font-mono text-gray-300">
                         SGD {donator.monthlyAmount}
@@ -168,7 +176,7 @@ export default function DonatorTable({ donators, onSelectDonator, onDeactivate, 
                         exit={{ opacity: 0, height: 0 }}
                         className="bg-[#0d1117]/50"
                       >
-                        <td colSpan={8} className="px-6 py-4 border-t border-gray-800/50">
+                        <td colSpan={10} className="px-6 py-4 border-t border-gray-800/50">
                           <div className="ml-10 grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                               <h4 className="text-xs font-semibold text-[#74c69d] uppercase tracking-wider mb-3 flex items-center gap-2">

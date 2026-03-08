@@ -114,6 +114,8 @@ export default function App() {
           name: incoming.name,
           tier: incoming.tier,
           discount: incoming.discount,
+          membershipLength: incoming.membershipLength,
+          membershipDateEnd: incoming.membershipDateEnd,
           monthlyAmount: incoming.tier === 'Individual' ? 50 : 100,
           status: 'Active',
           bounces: 0,

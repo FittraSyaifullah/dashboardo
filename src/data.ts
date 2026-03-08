@@ -8,6 +8,8 @@ export interface Donator {
   name: string;
   tier: 'Individual' | 'Household';
   discount: boolean;
+  membershipLength: number;
+  membershipDateEnd: string;
   monthlyAmount: number;
   status: 'Active' | 'Inactive';
   bounces: 0 | 1 | 2;
@@ -20,6 +22,8 @@ export interface IncomingDonator {
   name: string;
   tier: 'Individual' | 'Household';
   discount: boolean;
+  membershipLength: number;
+  membershipDateEnd: string;
   submittedDate: string;
   status: 'Pending Giro' | 'Pending e-Giro';
   householdMembers?: HouseholdMember[];
@@ -37,6 +41,8 @@ export const MOCK_CURRENT_DONATORS: Donator[] = [
     name: 'Ahmad bin Sulaiman',
     tier: 'Individual',
     discount: false,
+    membershipLength: 12,
+    membershipDateEnd: '2026-03-31',
     monthlyAmount: 50,
     status: 'Active',
     bounces: 0,
@@ -52,6 +58,8 @@ export const MOCK_CURRENT_DONATORS: Donator[] = [
     name: 'Siti Nurhaliza',
     tier: 'Household',
     discount: true,
+    membershipLength: 24,
+    membershipDateEnd: '2027-03-31',
     monthlyAmount: 80, // discounted from maybe 160?
     status: 'Active',
     bounces: 1,
@@ -72,6 +80,8 @@ export const MOCK_CURRENT_DONATORS: Donator[] = [
     name: 'Farid Kamil',
     tier: 'Individual',
     discount: false,
+    membershipLength: 6,
+    membershipDateEnd: '2025-09-30',
     monthlyAmount: 30,
     status: 'Active',
     bounces: 2,
@@ -86,6 +96,8 @@ export const MOCK_CURRENT_DONATORS: Donator[] = [
     name: 'Zainab binti Ali',
     tier: 'Household',
     discount: false,
+    membershipLength: 18,
+    membershipDateEnd: '2026-09-30',
     monthlyAmount: 100,
     status: 'Active',
     bounces: 0,
@@ -106,6 +118,8 @@ export const MOCK_CURRENT_DONATORS: Donator[] = [
     name: 'Omar Abdullah',
     tier: 'Individual',
     discount: true,
+    membershipLength: 12,
+    membershipDateEnd: '2026-03-31',
     monthlyAmount: 25,
     status: 'Active',
     bounces: 0,
@@ -119,6 +133,8 @@ export const MOCK_CURRENT_DONATORS: Donator[] = [
     name: 'Khadijah Ibrahim',
     tier: 'Household',
     discount: true,
+    membershipLength: 12,
+    membershipDateEnd: '2026-02-28',
     monthlyAmount: 60,
     status: 'Inactive',
     bounces: 0,
@@ -138,6 +154,8 @@ export const MOCK_CURRENT_DONATORS: Donator[] = [
     name: 'Yusof Haslam',
     tier: 'Individual',
     discount: false,
+    membershipLength: 36,
+    membershipDateEnd: '2028-03-31',
     monthlyAmount: 100,
     status: 'Active',
     bounces: 0,
@@ -152,6 +170,8 @@ export const MOCK_CURRENT_DONATORS: Donator[] = [
     name: 'Norlida Ahmad',
     tier: 'Household',
     discount: false,
+    membershipLength: 24,
+    membershipDateEnd: '2027-02-28',
     monthlyAmount: 120,
     status: 'Active',
     bounces: 1,
@@ -174,6 +194,8 @@ export const MOCK_INCOMING_DONATORS: IncomingDonator[] = [
     name: 'Hassan Basri',
     tier: 'Individual',
     discount: false,
+    membershipLength: 12,
+    membershipDateEnd: '2026-03-31',
     submittedDate: '2025-03-05',
     status: 'Pending Giro'
   },
@@ -182,6 +204,8 @@ export const MOCK_INCOMING_DONATORS: IncomingDonator[] = [
     name: 'Aishah Sinclair',
     tier: 'Household',
     discount: true,
+    membershipLength: 24,
+    membershipDateEnd: '2027-03-31',
     submittedDate: '2025-03-04',
     status: 'Pending e-Giro',
     householdMembers: [
@@ -196,6 +220,8 @@ export const MOCK_INCOMING_DONATORS: IncomingDonator[] = [
     name: 'Mawi World',
     tier: 'Individual',
     discount: false,
+    membershipLength: 6,
+    membershipDateEnd: '2025-09-30',
     submittedDate: '2025-03-01',
     status: 'Pending Giro'
   },
@@ -204,6 +230,8 @@ export const MOCK_INCOMING_DONATORS: IncomingDonator[] = [
     name: 'Erra Fazira',
     tier: 'Household',
     discount: false,
+    membershipLength: 18,
+    membershipDateEnd: '2026-08-31',
     submittedDate: '2025-02-28',
     status: 'Pending e-Giro',
     householdMembers: [

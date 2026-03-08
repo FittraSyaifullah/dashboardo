@@ -46,6 +46,8 @@ export default function IncomingTable({ donators, onApprove, onReject }: Incomin
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Tier</th>
                 <th className="px-6 py-4">Discount</th>
+                <th className="px-6 py-4">Membership Length (Months)</th>
+                <th className="px-6 py-4">Membership Date End</th>
                 <th className="px-6 py-4">Submitted Date</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Actions</th>
@@ -79,6 +81,12 @@ export default function IncomingTable({ donators, onApprove, onReject }: Incomin
                       ) : (
                         <span className="text-gray-600 text-xs">—</span>
                       )}
+                    </td>
+                    <td className="px-6 py-4 font-mono text-gray-300">
+                      {donator.membershipLength}
+                    </td>
+                    <td className="px-6 py-4 font-mono text-gray-300 text-sm">
+                      {donator.membershipDateEnd}
                     </td>
                     <td className="px-6 py-4 font-mono text-gray-300 text-sm">
                       {donator.submittedDate}
